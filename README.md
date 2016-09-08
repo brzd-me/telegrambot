@@ -15,3 +15,7 @@ https://telegram.me/tgbotglpi
  - [ ] Support email and Telegram notifications simultaneously.
 
 [1] https://github.com/filipemenezes/glpi/blob/master/inc/notificationtelegram.class.php
+
+WIKI: https://github.com/pluginsGLPI/telegrambot/wiki
+
+This plugin is on Transifex - Help us to translate : https://www.transifex.com/pluginsGLPI/glpi-telegrambot/dashboard/
