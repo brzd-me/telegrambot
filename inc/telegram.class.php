@@ -31,7 +31,7 @@ if (!defined('GLPI_ROOT')) {
    die("Sorry. You can't access directly to this file");
 }
 
-class PluginTelegram extends CommonDBTM {
+class PluginTelegrambotCore extends CommonDBTM {
    private $bot_token;
    private $bot_url = 'https://api.telegram.org/bot';
 
@@ -47,16 +47,6 @@ class PluginTelegram extends CommonDBTM {
    public function send_message($chat_id, $message) {
       $content = array('chat_id' => $chat_id, 'text' => $message);
       return $this->send_api_request('sendMessage', $content);
-   }
-
-   public function get_updates($offset=null, $limit=100, $timeout=0) {
-      $content = array(
-         'offset'    => $offset,
-         'limit'     => $limit,
-         'timeout'   => $timeout
-      );
-
-      return $this->send_api_request('getUpdates', $content);
    }
 
    public function handle_get_updates() {
@@ -84,6 +74,18 @@ class PluginTelegram extends CommonDBTM {
             $this->process_update($data);
          }
       }
+
+      return $messages['result'];
+   }
+   
+   private function get_updates($offset=null, $limit=100, $timeout=0) {
+      $content = array(
+         'offset'    => $offset,
+         'limit'     => $limit,
+         'timeout'   => $timeout
+      );
+
+      return $this->send_api_request('getUpdates', $content);
    }
 
    private function send_api_request($action, array $content) {

@@ -39,7 +39,7 @@ function plugin_telegrambot_install() {
                ) ENGINE=MyISAM CHARSET=utf8 COLLATE=utf8_unicode_ci";
       $DB->query($query) or die('error glpi_plugin_telegrambot_configs ' . $DB->error());
 
-      $query = "INSERT INTO `glpi_plugin_telegrambot_configs`(`name`) VALUES('admin_username')";
+      $query = "INSERT INTO `glpi_plugin_telegrambot_configs`(`name`) VALUES ('token'), ('admin_username')";
       $DB->query($query) or die('error populate glpi_plugin_telegrambot_configs ' . $DB->error());
    }
 
@@ -69,6 +69,7 @@ function plugin_telegrambot_install() {
       $DB->query($query) or die('error glpi_plugin_telegrambot_messages ' . $DB->error());
    }
 
+   CronTask::Register('PluginTelegrambotCron', 'MessageListener', 1 * MINUTE_TIMESTAMP);
    return true;
 }
 

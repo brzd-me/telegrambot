@@ -32,9 +32,6 @@ function plugin_init_telegrambot() {
    global $PLUGIN_HOOKS;
 
    $PLUGIN_HOOKS['csrf_compliant']['telegrambot'] = true;
-
-   Plugin::registerClass('PluginTelegram');
-   Plugin::registerClass('PluginTelegramNotification');
 }
 
 // Get the name and the version of the plugin
