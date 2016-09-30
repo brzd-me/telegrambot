@@ -1,6 +1,7 @@
 <?php
+
 /*
-* @version $Id: HEADER 15930 2011-10-25 10:47:55Z jmd $
+* @version $Id: HEADER 15930 2016-08-29 10:47:55Z jmd $
 -------------------------------------------------------------------------
 GLPI - Gestionnaire Libre de Parc Informatique
 Copyright (C) 2003-2016 by the INDEPNET Development Team.
@@ -32,13 +33,7 @@ if (!defined('GLPI_ROOT')) {
 }
 
 class PluginTelegrambotCore extends CommonDBTM {
-   private $bot_token;
-   private $bot_url = 'https://api.telegram.org/bot';
-
-   public function __construct($bot_token) {
-      $this->bot_token  = $bot_token;
-      $this->bot_url    .= $bot_token;
-   }
+   const BOT_URL = 'https://api.telegram.org/bot';
 
    public function get_me() {
       return $this->send_api_request('getMe', array());
@@ -52,11 +47,11 @@ class PluginTelegrambotCore extends CommonDBTM {
    public function handle_get_updates() {
       global $DB;
 
-      $query = "SELECT MAX(`update_id`) AS `update_id` FROM `glpi_plugin_telegrambot_messages`";
-      $result = $DB->query($query);
-      $last_update_id = 1 + (int) $DB->result($result, 0, 'update_id');
+      $query            = "SELECT MAX(`update_id`) AS `update_id` FROM `glpi_plugin_telegrambot_messages`";
+      $result           = $DB->query($query);
+      $last_update_id   = 1 + (int) $DB->result($result, 0, 'update_id');
 
-      $messages = $this->get_updates($last_update_id);
+      $messages         = $this->get_updates($last_update_id);
 
       if($messages['ok']) {
          foreach ($messages['result'] as $key => $value) {
@@ -77,7 +72,27 @@ class PluginTelegrambotCore extends CommonDBTM {
 
       return $messages['result'];
    }
+
+   public function get_bot_token() {
+      global $DB;
+
+      $query   = "SELECT `value` AS `token` FROM `glpi_plugin_telegrambot_configs` WHERE `name` = 'token'";
+      $result  = $DB->query($query);
+
+      return $DB->result($result, 0, 'token');
+   }
+
+   public function set_bot_token($token) {
+      global $DB;
+
+      $query = "UPDATE `glpi_plugin_telegrambot_configs` SET `value` = '$token' WHERE `name` = 'token'";
+      $DB->query($query);
+   }
    
+   private function get_api_endpoint() {
+      return self::BOT_URL . self::get_bot_token();
+   }
+
    private function get_updates($offset=null, $limit=100, $timeout=0) {
       $content = array(
          'offset'    => $offset,
@@ -89,9 +104,9 @@ class PluginTelegrambotCore extends CommonDBTM {
    }
 
    private function send_api_request($action, array $content) {
-      $url = "$this->bot_url/$action";
+      $url  = self::get_api_endpoint() . '/' . $action;
 
-      $ch = curl_init();
+      $ch   = curl_init();
 
       curl_setopt($ch, CURLOPT_URL, $url);
       curl_setopt($ch, CURLOPT_HEADER, false);
@@ -126,8 +141,8 @@ class PluginTelegrambotCore extends CommonDBTM {
    private function insert_user($user_id, $first_name, $last_name, $username) {
       global $DB;
 
-      $result = $DB->query("SELECT * FROM `glpi_plugin_telegrambot_users` WHERE `id` = $user_id");
-      $user_exists = $DB->numrows($result);
+      $result        = $DB->query("SELECT * FROM `glpi_plugin_telegrambot_users` WHERE `id` = $user_id");
+      $user_exists   = $DB->numrows($result);
 
       if(!$user_exists) {
          $query = "INSERT INTO `glpi_plugin_telegrambot_users`
@@ -142,8 +157,8 @@ class PluginTelegrambotCore extends CommonDBTM {
       global $DB;
 
       $query = "INSERT INTO `glpi_plugin_telegrambot_messages`
-      (`update_id`, `message_id`, `user_id`, `date`, `text`)
-      VALUES($update_id, $message_id, $user_id, '$date', '$text')";
+         (`update_id`, `message_id`, `user_id`, `date`, `text`)
+         VALUES($update_id, $message_id, $user_id, '$date', '$text')";
 
       $DB->query($query);
    }
