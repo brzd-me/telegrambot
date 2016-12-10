@@ -29,13 +29,12 @@ along with GLPI. If not, see <http://www.gnu.org/licenses/>.
  */
 
 include_once('../../../inc/includes.php');
-include_once('../inc/telegram.class.php');
 
-if(isset($_POST['token'])) {
-   $telegram = new PluginTelegrambotCore();
-   $telegram->set_bot_token($_POST['token']);
+if(isset($_POST['token']) && isset($_POST['username'])) {
+   PluginTelegrambotConfig::setToken($_POST['token']);
+   PluginTelegrambotConfig::setUsername($_POST['username']);
 
-   Session::addMessageAfterRedirect('Bot token saved');
+   Session::addMessageAfterRedirect('Bot config saved');
 }
 
 Html::back();

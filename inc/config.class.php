@@ -28,9 +28,44 @@ along with GLPI. If not, see <http://www.gnu.org/licenses/>.
 --------------------------------------------------------------------------
  */
 
-include_once('telegram.class.php');
-
 class PluginTelegrambotConfig extends CommonDBTM {
+
+   static function getToken() {
+      global $DB;
+      $table = self::getTable();
+
+      $query   = "SELECT `value` AS `token` FROM `$table` WHERE `name` = 'token'";
+      $result  = $DB->query($query);
+
+      return $DB->result($result, 0, 'token');
+   }
+
+   static function setToken($token) {
+      global $DB;
+      $table = self::getTable();
+
+      $query = "UPDATE `$table` SET `value` = '$token' WHERE `name` = 'token'";
+      $DB->query($query);
+   }
+
+   static function getUsername() {
+      global $DB;
+      $table = self::getTable();
+
+      $query   = "SELECT `value` AS `username` FROM `$table` WHERE `name` = 'admin_username'";
+      $result  = $DB->query($query);
+
+      return $DB->result($result, 0, 'username');
+   }
+
+   static function setUsername($username) {
+      global $DB;
+      $table = self::getTable();
+
+      $query = "UPDATE `$table` SET `value` = '$username' WHERE `name` = 'admin_username';";
+      $DB->query($query);
+   }
+
    function getTabNameForItem(CommonGLPI $item, $withtemplate=0) {
       if (!$withtemplate) {
          if ($item->getType() == 'Config') {
@@ -41,7 +76,7 @@ class PluginTelegrambotConfig extends CommonDBTM {
       return '';
    }
 
-   function showForm($token) {
+   function showForm($token, $username) {
       global $CFG_GLPI;
 
       $action = $CFG_GLPI['root_doc'] . '/plugins/telegrambot/front/config.form.php';
@@ -50,13 +85,17 @@ class PluginTelegrambotConfig extends CommonDBTM {
       echo "<div class='center' id='tabsbody'>";
       echo "<table class='tab_cadre_fixe'>";
       echo "<tr><th colspan='4'>" . __('Telegram setup') . "</th></tr>";
-      echo "<td>" . __('Token:') . "</td>";
+      echo "<tr><td>" . __('Token:') . "</td>";
       echo "<td>";
       echo "<input name='token' type='text' value='$token' style='width: 400px'/>";
       echo "</td></tr>";
+      echo "<tr><td>" . __('Administrator username:') . "</td>";
+      echo "<td>";
+      echo "<input name='username' type='text' value='$username' style='width: 400px'/>";
+      echo "</td></tr>";
       echo "<tr class='tab_bg_2'>";
       echo "<td colspan='4' class='center'>";
-      echo "<input type='submit' name='update' class='submit' value=\"" . _sx('button','Save') . "\">";
+      echo "<input type='submit' name='update' class='submit' value=\"" . _sx('button', 'Save') . "\">";
       echo "</td></tr>";
       echo "</table></div>";
 
@@ -65,13 +104,11 @@ class PluginTelegrambotConfig extends CommonDBTM {
 
    static function displayTabContentForItem(CommonGLPI $item, $tabnum=1, $withtemplate=0) {
       if ($item->getType() == 'Config') {
-         $telegram   = new PluginTelegrambotCore();
-         $token      = $telegram->get_bot_token();
-
-         $config     = new self();
-         $config->showForm($token);
+         $form = new self();
+         $form->showForm(self::getToken(), self::getUsername());
       }
    }
+
 }
 
 ?>
