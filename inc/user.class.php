@@ -30,6 +30,25 @@ along with GLPI. If not, see <http://www.gnu.org/licenses/>.
 
 class PluginTelegrambotUser extends CommonDBTM {
 
+   static function getChatID($user_id) {
+      global $DB;
+      $table = self::getTable();
+
+      if(isset($user_id)) { // regular user
+         $query   = "SELECT `T`.`id` AS `chat_id` FROM `$table` `T`
+         INNER JOIN `glpi_users` `U` ON(`T`.`username` = `U`.`phone2`)
+         WHERE `U`.`id` = $user_id";
+      } else { // global admin user
+         $query   = "SELECT `U`.`id` AS `chat_id` FROM `$table` `U`
+         INNER JOIN `glpi_plugin_telegrambot_configs` `C` ON (`U`.`username` = `C`.`value`)
+         WHERE `C`.`name` = 'admin_username'";
+      }
+
+      $result  = $DB->query($query);
+
+      return $DB->result($result, 0, 'chat_id');
+   }
+
    static function insertUser($user_id, $first_name, $last_name, $username) {
       global $DB;
 

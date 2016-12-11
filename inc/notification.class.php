@@ -27,12 +27,81 @@ along with GLPI. If not, see <http://www.gnu.org/licenses/>.
 --------------------------------------------------------------------------
  */
 
-if (!defined('GLPI_ROOT')) {
-   die("Sorry. You can't access directly to this file");
-}
+class PluginTelegrambotNotification extends CommonDBTM {
+   
+   function sendNotification($data=array()) {
+      $data['chat_id'] = PluginTelegrambotUser::getChatID($data['user_id']);
 
-class PluginTelegramNotification {
-   // TODO
+      if(isset($data['chat_id'])) {
+         $data = $this->prepareForAdd($data);
+         $this->addNotification($data);
+      }
+   }
+
+   function getNotSent() {
+      global $DB;
+      $table = $this->getTable();
+
+      $query = "SELECT `id`, `chat_id`, `message` FROM `$table` WHERE NOT `is_deleted`";
+      return $DB->query($query);
+   }
+
+   function updateDeleteStatus($notification_id) {
+      global $DB;
+      $table = $this->getTable();
+
+      $query   = "UPDATE `$table` SET `is_deleted` = 1 WHERE `id` = $notification_id";
+      $result  = $DB->query($query);
+   }
+
+   private function prepareForAdd($data=array()) {
+      global $DB;
+
+      // Drop existing notification for the same event, item and chat_id
+      $this->dropExistingNotification(
+         $data['chat_id'],
+         $data['item_type'],
+         $data['item_id'],
+         $data['template_id']
+      );
+
+      return $data;
+   }
+
+   private function addNotification($data=array()) {
+      global $DB;
+      $table = $this->getTable();
+
+      $chat_id       = $data['chat_id'];
+      $item_type     = $data['item_type'];
+      $item_id       = $data['item_id'];
+      $template_id   = $data['template_id'];
+      $message       = $data['message'];
+      $create_time   = $data['date_mod'];
+
+      if($chat_id) {
+         $query = "INSERT INTO `$table`
+         (`chat_id`, `item_type`, `item_id`, `template_id`, `message`, `create_time`)
+         VALUES('$chat_id', '$item_type', '$item_id', '$template_id', '$message', '$create_time')";
+
+         $DB->query($query);
+      }
+   }
+
+   private function dropExistingNotification($chat_id, $item_type, $item_id, $template_id) {
+      global $DB;
+      $table = $this->getTable();
+
+      $query = "DELETE FROM `$table` WHERE
+               NOT `is_deleted`
+               AND `chat_id` = '$chat_id'
+               AND `item_type` = '$item_type'
+               AND `item_id` = '$item_id'
+               AND `template_id` = '$template_id'";
+
+      $DB->query($query);
+   }
+
 }
 
 ?>
