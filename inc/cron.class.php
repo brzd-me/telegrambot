@@ -26,11 +26,12 @@ GNU General Public License for more details.
 You should have received a copy of the GNU General Public License
 along with GLPI. If not, see <http://www.gnu.org/licenses/>.
 --------------------------------------------------------------------------
- */
+*/
 
-require_once('telegram.class.php');
+include_once('core.class.php');
 
-class PluginTelegrambotCron extends CommonDBTM {
+class PluginTelegrambotCron {
+
    static function getTypeName($nb = 0) {
       return 'Telegrambot';
    }
@@ -38,25 +39,37 @@ class PluginTelegrambotCron extends CommonDBTM {
    static function cronInfo($name) {
       switch ($name) {
          case 'MessageListener':
-            return array('description' => __('Handles incoming bot messages', 'telegrambot'));
+         return array('description' => __('Handles incoming bot messages', 'telegrambot'));
       }
+
       return array();
    }
 
    static function cronMessageListener($task) {
-      global $DB;
+      $messages   = PluginTelegrambotCore::handleGetUpdates();
+      $count      = count($messages['result']);
 
-      $query      = "SELECT `value` AS token FROM glpi_plugin_telegrambot_configs WHERE `name` = 'token'";
-      $result     = $DB->query($query);
-      $token      = $DB->result($result, 0, 'token');
+      if($messages['ok']) {
+         foreach ($messages['result'] as $key => $value) {
+            $data = array(
+               'update_id'  => $value['update_id'],
+               'message_id' => $value['message']['message_id'],
+               'user_id'    => $value['message']['from']['id'],
+               'date'       => $value['message']['date'],
+               'text'       => $value['message']['text'],
+               'first_name' => $value['message']['from']['first_name'],
+               'last_name'  => $value['message']['from']['last_name'],
+               'username'   => $value['message']['from']['username']
+            );
 
-      $telegram   = new PluginTelegrambotCore();
-      $response   = $telegram->handle_get_updates();
-      $count      = count($response);
+            PluginTelegrambotMessage::processUpdate($data);
+         }
+      }
 
       $task->log("Telegrambot has processed $count new messages");
       return 1;
    }
+
 }
 
 ?>
