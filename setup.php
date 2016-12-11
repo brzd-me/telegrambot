@@ -32,6 +32,10 @@ function plugin_init_telegrambot() {
    global $PLUGIN_HOOKS;
 
    $PLUGIN_HOOKS['csrf_compliant']['telegrambot'] = true;
+
+   $PLUGIN_HOOKS['item_get_events']['telegrambot'] = array(
+      'NotificationTargetTicket' => 'plugin_telegrambot_get_events'
+   );
    
    Plugin::registerClass('PluginTelegrambotConfig', array('addtabon' => 'Config'));
 }

@@ -93,6 +93,8 @@ function plugin_telegrambot_install() {
    }
 
    CronTask::Register('PluginTelegrambotCron', 'MessageListener', 1 * MINUTE_TIMESTAMP);
+   CronTask::Register('PluginTelegrambotCron', 'SendNotification', 1 * MINUTE_TIMESTAMP);
+
    return true;
 }
 
@@ -124,6 +126,14 @@ function plugin_telegrambot_uninstall() {
    }
 
    return true;
+}
+
+function plugin_telegrambot_get_events(NotificationTargetTicket $target) {
+   $event      = $target->raiseevent;
+   $item       = $target->obj;
+   $options    = $target->options;
+
+   PluginTelegrambotNotificationEvent::raiseEvent($event, $item, $options);
 }
 
 ?>
