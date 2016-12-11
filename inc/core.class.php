@@ -28,7 +28,7 @@ along with GLPI. If not, see <http://www.gnu.org/licenses/>.
 --------------------------------------------------------------------------
  */
 
-class PluginTelegrambotCore extends CommonDBTM {
+class PluginTelegrambotCore {
 
    const BOT_URL = 'https://api.telegram.org/bot';
 
@@ -42,31 +42,8 @@ class PluginTelegrambotCore extends CommonDBTM {
    }
 
    static function handleGetUpdates() {
-      global $DB;
-
-      $query            = "SELECT MAX(`update_id`) AS `update_id` FROM `glpi_plugin_telegrambot_messages`";
-      $result           = $DB->query($query);
-      $last_update_id   = 1 + (int) $DB->result($result, 0, 'update_id');
-      $messages         = self::getUpdates($last_update_id);
-
-      if($messages['ok']) {
-         foreach ($messages['result'] as $key => $value) {
-            $data = array(
-               'update_id'  => $value['update_id'],
-               'message_id' => $value['message']['message_id'],
-               'user_id'    => $value['message']['from']['id'],
-               'date'       => $value['message']['date'],
-               'text'       => $value['message']['text'],
-               'first_name' => $value['message']['from']['first_name'],
-               'last_name'  => $value['message']['from']['last_name'],
-               'username'   => $value['message']['from']['username']
-            );
-
-            self::processUpdate($data);
-         }
-      }
-
-      return $messages['result'];
+      $last_update_id = PluginTelegrambotMessage::getLastUpdateID();
+      return self::getUpdates($last_update_id);
    }
 
    private static function getAPIEndpoint() {
@@ -85,7 +62,6 @@ class PluginTelegrambotCore extends CommonDBTM {
 
    private static function sendAPIRequest($action, array $content) {
       $url  = self::getAPIEndpoint() . '/' . $action;
-
       $ch   = curl_init();
 
       curl_setopt($ch, CURLOPT_URL, $url);
@@ -99,48 +75,6 @@ class PluginTelegrambotCore extends CommonDBTM {
       curl_close($ch);
 
       return json_decode($response, true);
-   }
-
-   private static function processUpdate($data) {
-      self::insertUser(
-         $data['user_id'],
-         $data['first_name'],
-         $data['last_name'],
-         $data['username']
-      );
-
-      self::insertMessage(
-         $data['update_id'],
-         $data['message_id'],
-         $data['user_id'],
-         date('Y-m-d H:i:s', $data['date']),
-         $data['text']
-      );
-   }
-
-   private static function insertUser($user_id, $first_name, $last_name, $username) {
-      global $DB;
-
-      $result        = $DB->query("SELECT * FROM `glpi_plugin_telegrambot_users` WHERE `id` = $user_id");
-      $user_exists   = $DB->numrows($result);
-
-      if(!$user_exists) {
-         $query = "INSERT INTO `glpi_plugin_telegrambot_users`
-                  (`id`, `first_name`, `last_name`, `username`)
-                  VALUES($user_id, '$first_name', '$last_name', '$username')";
-
-         $DB->query($query);
-      }
-   }
-
-   private static function insertMessage($update_id, $message_id, $user_id, $date, $text) {
-      global $DB;
-
-      $query = "INSERT INTO `glpi_plugin_telegrambot_messages`
-         (`update_id`, `message_id`, `user_id`, `date`, `text`)
-         VALUES($update_id, $message_id, $user_id, '$date', '$text')";
-
-      $DB->query($query);
    }
 
 }
