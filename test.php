@@ -1,11 +1,11 @@
 <?php
 
 include ("../../inc/includes.php");
-include_once('inc/core.class.php');
+include_once('inc/notification.class.php');
 
-$messages   = PluginTelegrambotCore::handleGetUpdates();
-$count      = count($messages['result']);
+$notification  = new PluginTelegrambotNotification();
+$result        = $notification->getNotSent();
 
-echo $count;
+die(d($result));
 
 ?>

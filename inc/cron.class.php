@@ -39,7 +39,10 @@ class PluginTelegrambotCron {
    static function cronInfo($name) {
       switch ($name) {
          case 'MessageListener':
-         return array('description' => __('Handles incoming bot messages', 'telegrambot'));
+            return array('description' => __('Handles incoming bot messages', 'telegrambot'));
+
+         case 'SendNotification': 
+            return array('description' => __('Send Telegram notifications', 'telegrambot'));
       }
 
       return array();
@@ -67,6 +70,23 @@ class PluginTelegrambotCron {
       }
 
       $task->log("Telegrambot has processed $count new messages");
+      return 1;
+   }
+
+   static function cronSendNotification($task) {
+      $notification  = new PluginTelegrambotNotification();
+      $notifications = $notification->getNotSent();
+
+      foreach($notifications as $data) {
+         $notification_id  = $data['id'];
+         $chat_id          = $data['chat_id'];
+         $message          = $data['message'];
+
+         PluginTelegrambotCore::sendMessage($chat_id, $message);
+         $notification->updateDeleteStatus($notification_id);
+      }
+
+      $task->log("Telegrambot notifications has been sent");
       return 1;
    }
 
