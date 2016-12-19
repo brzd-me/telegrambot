@@ -53,7 +53,9 @@ class PluginTelegrambotUser extends CommonDBTM {
       global $DB;
 
       $table   = self::getTable();
-      $exists  = countElementsInTable(self::getTable(), ['id' => $user_id]);
+      $query   = "SELECT COUNT(*) AS `count` FROM `$table` WHERE `id` = '$user_id'";
+      $result  = $result  = $DB->query($query);
+      $exists  = $DB->result($result, 0, 'count');
 
       if(!$exists) {
          $query = "INSERT INTO `$table` (`id`, `first_name`, `last_name`, `username`)
