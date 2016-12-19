@@ -57,7 +57,6 @@ class PluginTelegrambotNotificationEvent {
 
                foreach ($notificationtarget->getTargets() as $user_email => $users_infos) {
                   $ticket_id  = $item->fields['id'];        // temp
-                  $username   = $users_infos['username'];   // temp
                   $date_mod   = $item->fields['date_mod'];  // temp
 
                   $datas['user_id']       = isset($users_infos['users_id']) ? $users_infos['users_id'] : null;
@@ -65,7 +64,7 @@ class PluginTelegrambotNotificationEvent {
                   $datas['item_id']       = $item->fields['id'];
                   $datas['template_id']   = $data['notificationtemplates_id'];
                   $datas['date_mod']      = $item->fields['date_mod'];
-                  $datas['message']       = "Ticket: $ticket_id\nEvent: $event\nDate: $date_mod\nUser: $username";
+                  $datas['message']       = "Ticket: $ticket_id\nEvent: $event\nDate: $date_mod";
                   
                   $notification->sendNotification($datas);
                }
