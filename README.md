@@ -1,4 +1,4 @@
-# Telegram Bot for GLPi
+# Telegram Bot for GLPI
 [![Project Status: WIP - Initial development is in progress, but there has not yet been a stable, usable release suitable for the public.](http://www.repostatus.org/badges/latest/wip.svg)](http://www.repostatus.org/#wip)
 [![Telegram Group](https://img.shields.io/badge/Telegram-Group-blue.svg)](https://telegram.me/tgbotglpi)
 
